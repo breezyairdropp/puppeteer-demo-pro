@@ -8,7 +8,8 @@
 // For Teams, the execution timeout is 60 seconds (Pro plan)
 // or 900 seconds (Enterprise plan).
 
-const puppeteer = require("puppeteer-core");
+const puppeteer = require("puppeteer");
+// const chrome = require("chrome-aws-lambda");
 
 /** The code below determines the executable location for Chrome to
  * start up and take the screenshot when running a local development environment.
@@ -20,6 +21,25 @@ const puppeteer = require("puppeteer-core");
  * your Chrome installation on your operating system.
  */
 
+const exePath = puppeteer.executablePath()
+
+async function getOptions(isDev) {
+  let options;
+  if (isDev) {
+    options = {
+      args: ["--no-sandbox"],
+      executablePath: puppeteer.executablePath(),
+      headless: 'new',
+    };
+  } else {
+    options = {
+      args: ["--no-sandbox"],
+      executablePath: puppeteer.executablePath(),
+      headless: 'new',
+    };
+  }
+  return options;
+}
 
 module.exports = async (req, res) => {
   const pageToScreenshot = req.query.page;
@@ -27,7 +47,7 @@ module.exports = async (req, res) => {
   // pass in this parameter if you are developing locally
   // to ensure puppeteer picks up your machine installation of
   // Chrome via the configurable options
-  // const isDev = req.query.isDev === "true";
+  const isDev = req.query.isDev === "true";
 
   try {
     // check for https for safety!
@@ -39,13 +59,10 @@ module.exports = async (req, res) => {
     }
 
     // get options for browser
-    // const options = await getOptions(isDev);
+    const options = await getOptions(isDev);
 
     // launch a new headless browser with dev / prod options
-    const browser = await puppeteer.launch({
-      args: ["--no-sandbox"],
-      executablePath: puppeteer.executablePath()
-    });
+    const browser = await puppeteer.launch(options);
     const page = await browser.newPage();
 
     // set the viewport size
